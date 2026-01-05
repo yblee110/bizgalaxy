@@ -66,6 +66,17 @@ export default function TeamCalendar({ isOpen, onClose }: TeamCalendarProps) {
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [newMemberName, setNewMemberName] = useState('');
     const [mounted, setMounted] = useState(false);
+    const [hiddenMemberIds, setHiddenMemberIds] = useState<Set<string>>(new Set());
+
+    const toggleMemberVisibility = (memberId: string) => {
+        const newHidden = new Set(hiddenMemberIds);
+        if (newHidden.has(memberId)) {
+            newHidden.delete(memberId);
+        } else {
+            newHidden.add(memberId);
+        }
+        setHiddenMemberIds(newHidden);
+    };
 
     useEffect(() => {
         setMounted(true);
@@ -125,7 +136,7 @@ export default function TeamCalendar({ isOpen, onClose }: TeamCalendarProps) {
 
                     {/* Member Schedules visualization */}
                     <div className="flex flex-col gap-1 overflow-hidden">
-                        {members.map(member => {
+                        {members.filter(m => !hiddenMemberIds.has(m.id)).map(member => {
                             const type = getSchedule(dateStr, member.id);
                             if (!type) return null;
                             const style = WORK_TYPES[type as keyof typeof WORK_TYPES] || WORK_TYPES.WORK;
@@ -173,36 +184,57 @@ export default function TeamCalendar({ isOpen, onClose }: TeamCalendarProps) {
                     </div>
 
                     <div className="flex-1 overflow-auto space-y-2">
-                        {members.map(member => (
-                            <div key={member.id} className="flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-white/10 group border border-transparent hover:border-white/10 transition-all">
-                                <div className="flex items-center gap-3">
-                                    <div className={cn("w-3 h-3 rounded-full shadow-[0_0_8px]", member.color)} />
-                                    <span className="text-sm text-white font-medium">{member.name}</span>
-                                </div>
+                        {members.map(member => {
+                            const isHidden = hiddenMemberIds.has(member.id);
+                            return (
+                                <div
+                                    key={member.id}
+                                    onClick={() => toggleMemberVisibility(member.id)}
+                                    className={cn(
+                                        "flex items-center justify-between p-2 rounded-lg group border transition-all cursor-pointer",
+                                        isHidden
+                                            ? "bg-transparent border-transparent opacity-50 hover:bg-white/5"
+                                            : "bg-white/5 hover:bg-white/10 border-transparent hover:border-white/10"
+                                    )}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={cn(
+                                            "w-3 h-3 rounded-full shadow-[0_0_8px]",
+                                            member.color,
+                                            isHidden && "shadow-none bg-gray-500"
+                                        )} />
+                                        <span className={cn(
+                                            "text-sm font-medium transition-colors",
+                                            isHidden ? "text-muted-foreground line-through" : "text-white"
+                                        )}>{member.name}</span>
+                                    </div>
 
-                                {/* Member Actions Menu */}
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <MoreHorizontal className="w-3 h-3" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-48 bg-[#1a1b26] border-white/10 text-white">
-                                        <DropdownMenuLabel>일괄 설정 ({month + 1}월)</DropdownMenuLabel>
-                                        <DropdownMenuItem onClick={() => setMonthSchedule(year, month, member.id, 'WORK')}>
-                                            <div className="w-2 h-2 rounded-full bg-green-500 mr-2" /> 정상근무 채우기
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => setMonthSchedule(year, month, member.id, 'FLEX')}>
-                                            <div className="w-2 h-2 rounded-full bg-blue-500 mr-2" /> 유연근무 채우기
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator className="bg-white/10" />
-                                        <DropdownMenuItem className="text-red-400 focus:text-red-400" onClick={() => removeMember(member.id)}>
-                                            <Trash2 className="w-3 h-3 mr-2" /> 팀원 삭제
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        ))}
+                                    {/* Member Actions Menu */}
+                                    <div onClick={(e) => e.stopPropagation()}>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <MoreHorizontal className="w-3 h-3" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="w-48 bg-[#1a1b26] border-white/10 text-white z-[10000]">
+                                                <DropdownMenuLabel>일괄 설정 ({month + 1}월)</DropdownMenuLabel>
+                                                <DropdownMenuItem onClick={() => setMonthSchedule(year, month, member.id, 'WORK')}>
+                                                    <div className="w-2 h-2 rounded-full bg-green-500 mr-2" /> 정상근무 채우기
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => setMonthSchedule(year, month, member.id, 'FLEX')}>
+                                                    <div className="w-2 h-2 rounded-full bg-blue-500 mr-2" /> 유연근무 채우기
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator className="bg-white/10" />
+                                                <DropdownMenuItem className="text-red-400 focus:text-red-400" onClick={() => removeMember(member.id)}>
+                                                    <Trash2 className="w-3 h-3 mr-2" /> 팀원 삭제
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
 
                     <div className="mt-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300">
