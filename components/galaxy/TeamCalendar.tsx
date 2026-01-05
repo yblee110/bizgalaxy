@@ -110,8 +110,11 @@ export default function TeamCalendar({ isOpen, onClose }: TeamCalendarProps) {
         for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const holidayName = HOLIDAYS[dateStr];
-            const isWeekend = new Date(year, month, day).getDay() === 0 || new Date(year, month, day).getDay() === 6;
-            const isRedDay = new Date(year, month, day).getDay() === 0 || holidayName;
+            const dayOfWeek = new Date(year, month, day).getDay();
+
+            // Visual: Sun(0) is Red, Mon(1) is Blue (Weekend), Sat(6) is Normal
+            const isWeekend = dayOfWeek === 1; // Monday is the new 'Saturday' (Blue)
+            const isRedDay = dayOfWeek === 0 || holidayName; // Sunday is Red
 
             cells.push(
                 <div
@@ -243,7 +246,7 @@ export default function TeamCalendar({ isOpen, onClose }: TeamCalendarProps) {
                 </div>
 
                 {/* Main Calendar Area */}
-                <div className="flex-1 flex flex-col h-full overflow-hidden bg-gradient-to-br from-[#1a1b26] to-[#13141f]">
+                <div className="flex-1 flex flex-col h-full overflow-hidden bg-gradient-to-br from-pink-950/40 via-[#1a1b26] to-purple-950/40">
                     {/* Header */}
                     <div className="p-6 border-b border-white/10 flex items-center justify-between bg-black/20 shrink-0">
                         <div className="flex items-center gap-6">

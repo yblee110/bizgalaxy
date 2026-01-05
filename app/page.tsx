@@ -10,8 +10,10 @@ import { ReactFlowProvider } from '@xyflow/react';
 import { Project } from '@/types';
 import { getUserId } from '@/lib/auth';
 
+import LoginPage from '@/components/auth/LoginPage';
+
 export default function HomePage() {
-  const { projects, setProjects } = useProjectStore();
+  const { projects, setProjects, isLoggedIn } = useProjectStore();
   const [isMounted, setIsMounted] = useState(false);
   const initialized = React.useRef(false);
 
@@ -88,6 +90,10 @@ export default function HomePage() {
         <div className="text-white">로딩 중...</div>
       </div>
     );
+  }
+
+  if (!isLoggedIn) {
+    return <LoginPage />;
   }
 
   return (

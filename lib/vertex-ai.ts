@@ -6,25 +6,26 @@ const genAI = process.env.NEXT_PUBLIC_GEMINI_API_KEY
   ? new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY)
   : null;
 
-const EXTRACT_TASKS_PROMPT = `다음 비즈니스 기획서를 분석해서:
+const EXTRACT_TASKS_PROMPT = `당신은 세계 최고의 프로젝트 매니저(PM)이자 개발 리드입니다.
+다음 비즈니스 기획서(또는 프로젝트 설명)를 정밀 분석하여, 실제 개발 및 실행 단계에서 즉시 착수 가능한 구체적인 칸반 보드용 To-Do 리스트를 생성해 주세요.
 
-1. 프로젝트의 핵심 목표를 한 줄로 요약
-2. 즉시 실행 가능한 Action Item들을 JSON 태스크 목록으로 추출
+목표: 기획상의 아이디어를 "실행 가능한(Actionable)" 단위의 태스크로 완벽하게 분해하는 것.
 
-각 태스크는 다음을 포함해야 해:
-- content: 간결한 행동 중심의 제목 (동사로 시작)
-- desc: 무엇을 해야 하는지 상세 설명
-- status: 모든 새 태스크는 "TODO"
-- is_ai_generated: true
-- order: 0부터 시작하는 순차 번호
+요구사항:
+1. 프로젝트의 핵심 '한 줄 요약(summary)'을 작성하세요.
+2. 기획서를 바탕으로 5개 ~ 10개의 구체적인 태스크(Tasks)를 추출하세요. (너무 적으면 안 됨)
+3. 각 태스크는 추상적이지 않고, 기술적/실무적으로 구체적이어야 합니다.
+   - 나쁜 예: "개발 시작", "기획서 작성"
+   - 좋은 예: "Next.js 프로젝트 초기 세팅 및 Dockerfile 구성", "피그마 UI 디자인 시스템 토큰 정의"
+4. 태스크의 순서는 논리적인 타임라인(기획 -> 디자인 -> 개발 -> 배포)을 따르세요.
 
-다음 JSON 형식으로 정확히 응답해:
+반환 포맷 (JSON):
 {
-  "summary": "프로젝트 요약 한 문장",
+  "summary": "프로젝트의 핵심 목표 요약 (50자 이내)",
   "tasks": [
     {
-      "content": "개발 환경 설정",
-      "desc": "Node.js 설치, IDE 설정, 저장소 클론",
+      "content": "태스크 제목 (핵심만 간결하게, 20자 내외, 명사형 종결이나 동사형)",
+      "desc": "구체적인 실행 가이드. 무엇을(What), 어떻게(How) 해야 할지 상세히 기술. 기술 스택이나 구체적 방법론 포함.",
       "status": "TODO",
       "is_ai_generated": true,
       "order": 0
@@ -32,9 +33,9 @@ const EXTRACT_TASKS_PROMPT = `다음 비즈니스 기획서를 분석해서:
   ]
 }
 
-중요: JSON 외에 다른 텍스트 없이 JSON만 반환해.
+중요: 오직 유효한 JSON 문자열만 반환하세요. 마크다운(code block)이나 사족을 붙이지 마세요.
 
-문서 내용:
+분석할 문서 내용:
 `;
 
 /**
@@ -51,7 +52,7 @@ export async function extractTasksFromDocument(
 
   try {
     const model = genAI.getGenerativeModel({
-      model: 'gemini-3-flash', // Use Gemini 3 Pro for higher quality analysis
+      model: 'gemini-2.5-pro', // Use Gemini 3 Pro for higher quality analysis
     });
 
     const prompt = EXTRACT_TASKS_PROMPT + documentText;
@@ -102,7 +103,7 @@ export async function generateSummary(
 
   try {
     const model = genAI.getGenerativeModel({
-      model: 'gemini-3.0-pro',
+      model: 'gemini-1.5-flash',
     });
 
     const prompt = `다음 문서를 한 문장(최대 50자)으로 요약해:
