@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(npx create-next-app:*)",
+      "Bash(echo:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(timeout 5 npm run dev:*)",
+      "Bash(tree:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(cat:*)",
+      "Skill(glm-plan-usage:usage-query)",
+      "Skill(glm-plan-usage:usage-query-skill)"
+    ]
+  }
+}
