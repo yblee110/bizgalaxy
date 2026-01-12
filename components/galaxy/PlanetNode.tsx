@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { GALAXY_CONFIG } from '@/lib/constants';
 
 interface PlanetNodeData extends Project {
   onSelect?: (project: Project) => void;
@@ -44,8 +45,10 @@ const PLANET_COLORS = [
 export default function PlanetNode({ id, data, selected }: PlanetNodeProps) {
   const { updateProject } = useProjectStore();
   const scale = data.scale || 5;
-  // Calculate size: scale 1 = 60px, scale 10 = 240px
-  const size = 60 + (scale - 1) * 20;
+  const { BASE_SIZE, SIZE_INCREMENT, MIN_FONT_SIZE, FONT_SCALE_FACTOR, BASE_FONT_SIZE } = GALAXY_CONFIG.PLANET;
+
+  // Calculate size using constants
+  const size = BASE_SIZE + (scale - 1) * SIZE_INCREMENT;
   const color = data.color || getCategoryColor(data.category);
 
   const handleClick = () => {
@@ -93,14 +96,14 @@ export default function PlanetNode({ id, data, selected }: PlanetNodeProps) {
           />
           <span
             className="text-xs font-medium text-white truncate block max-w-full"
-            style={{ fontSize: Math.max(10, 12 - scale * 0.5) }}
+            style={{ fontSize: Math.max(MIN_FONT_SIZE, BASE_FONT_SIZE - scale * FONT_SCALE_FACTOR) }}
           >
             {data.title}
           </span>
           {scale >= 5 && (
             <span
-              className="text-[10px] text-white/60 truncate block"
-              style={{ fontSize: Math.max(8, 10 - scale * 0.4) }}
+              className="text-white/60 truncate block"
+              style={{ fontSize: Math.max(MIN_FONT_SIZE - 2, BASE_FONT_SIZE - 2 - scale * FONT_SCALE_FACTOR * 0.8) }}
             >
               {data.category}
             </span>

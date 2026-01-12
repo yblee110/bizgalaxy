@@ -11,7 +11,11 @@
       "Bash(npm run type-check:*)",
       "Bash(cat:*)",
       "Skill(glm-plan-usage:usage-query)",
-      "Skill(glm-plan-usage:usage-query-skill)"
+      "Skill(glm-plan-usage:usage-query-skill)",
+      "Bash(mkdir:*)",
+      "Bash(tsc:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run lint:*)"
     ]
   }
 }

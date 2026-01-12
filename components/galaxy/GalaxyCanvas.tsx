@@ -19,6 +19,7 @@ import PlanetNode, { getCategoryColor } from './PlanetNode';
 import TeamNode from './TeamNode';
 import { Project, GalaxyNode } from '@/types';
 import { useProjectStore } from '@/stores/projectStore';
+import { GALAXY_CONFIG } from '@/lib/constants';
 
 const nodeTypes: NodeTypes = {
   project: PlanetNode,
@@ -36,17 +37,15 @@ export default function GalaxyCanvas({ projects }: GalaxyCanvasProps) {
   const initialNodes: GalaxyNode[] = useMemo(() => {
     const centerX = 0;
     const centerY = 0;
-    const radius = 400; // Distance from center
+    const { RADIUS, CENTER_X_OFFSET, CENTER_Y_OFFSET } = GALAXY_CONFIG.LAYOUT;
 
     const projectNodes: GalaxyNode[] = projects.map((project, index) => {
       // Arrange in a circular pattern around center
       const angle = (index / projects.length) * 2 * Math.PI - (Math.PI / 2); // Start from top
 
       // Calculate position (center-based)
-      // Note: PlanetNode handles its own size, but we position the top-left corner usually.
-      // We'll aim for approximate center alignment.
-      const x = centerX + Math.cos(angle) * radius;
-      const y = centerY + Math.sin(angle) * radius;
+      const x = centerX + Math.cos(angle) * RADIUS;
+      const y = centerY + Math.sin(angle) * RADIUS;
 
       return {
         id: project.id,
@@ -54,7 +53,7 @@ export default function GalaxyCanvas({ projects }: GalaxyCanvasProps) {
         position: { x, y },
         data: {
           ...project,
-          onSelect: (p: Project) => { // Type explicitly
+          onSelect: (p: Project) => {
             selectProject(p);
             openKanban(p);
           },
@@ -66,8 +65,8 @@ export default function GalaxyCanvas({ projects }: GalaxyCanvasProps) {
     const teamNode: GalaxyNode = {
       id: 'team-center',
       type: 'team',
-      // Center the 192x192 node
-      position: { x: centerX - 96, y: centerY - 96 },
+      // Center the team node using constants
+      position: { x: centerX - CENTER_X_OFFSET, y: centerY - CENTER_Y_OFFSET },
       data: {},
     };
 

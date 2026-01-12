@@ -12,15 +12,41 @@ import {
   serverTimestamp,
   Timestamp,
   writeBatch,
+  QueryDocumentSnapshot,
+  DocumentSnapshot,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase';
 import { Task, TaskStatus } from '@/types';
 
 const COLLECTION_NAME = 'tasks';
 
+// Get db instance
+const getDbInstance = () => getDb();
+
+// Firestore document data type
+interface FirestoreTaskData {
+  project_id: string;
+  status: TaskStatus;
+  content: string;
+  desc: string;
+  is_ai_generated: boolean;
+  order: number;
+  created_at: Timestamp;
+  priority?: string;
+  due_date?: Timestamp;
+  dependencies?: string[];
+  assignee?: string;
+  tags?: string[];
+  estimated_hours?: number;
+  actual_hours?: number;
+}
+
 // Convert Firestore document to Task
-const docToTask = (id: string, doc: any): Task => {
-  const data = doc.data();
+const docToTask = (id: string, docSnapshot: QueryDocumentSnapshot | DocumentSnapshot): Task => {
+  const data = docSnapshot.data() as FirestoreTaskData | undefined;
+  if (!data) {
+    throw new Error('Document data is undefined');
+  }
   return {
     id,
     project_id: data.project_id || '',
@@ -28,8 +54,15 @@ const docToTask = (id: string, doc: any): Task => {
     content: data.content || '',
     desc: data.desc || '',
     is_ai_generated: data.is_ai_generated || false,
-    order: data.order || 0,
+    order: data.order ?? 0,
     created_at: data.created_at || Timestamp.now(),
+    priority: data.priority as any,
+    due_date: data.due_date,
+    dependencies: data.dependencies,
+    assignee: data.assignee,
+    tags: data.tags,
+    estimated_hours: data.estimated_hours,
+    actual_hours: data.actual_hours,
   };
 };
 
@@ -37,13 +70,15 @@ const docToTask = (id: string, doc: any): Task => {
 export async function getTasks(projectId: string): Promise<Task[]> {
   try {
     const q = query(
-      collection(db, COLLECTION_NAME),
-      where('project_id', '==', projectId),
-      orderBy('order', 'asc')
+      collection(getDbInstance(), COLLECTION_NAME),
+      where('project_id', '==', projectId)
     );
 
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map((doc) => docToTask(doc.id, doc));
+    const tasks = querySnapshot.docs.map((doc) => docToTask(doc.id, doc));
+
+    // Sort by order ascending (client-side)
+    return tasks.sort((a, b) => (a.order || 0) - (b.order || 0));
   } catch (error) {
     console.error('Error getting tasks:', error);
     return [];
@@ -53,7 +88,7 @@ export async function getTasks(projectId: string): Promise<Task[]> {
 // Get a single task by ID
 export async function getTask(id: string): Promise<Task | null> {
   try {
-    const docRef = doc(db, COLLECTION_NAME, id);
+    const docRef = doc(getDbInstance(), COLLECTION_NAME, id);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
@@ -71,7 +106,7 @@ export async function createTask(
   task: Omit<Task, 'id' | 'created_at'>
 ): Promise<Task | null> {
   try {
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+    const docRef = await addDoc(collection(getDbInstance(), COLLECTION_NAME), {
       ...task,
       created_at: serverTimestamp(),
     });
@@ -92,6 +127,7 @@ export async function createTasks(
   tasks: Omit<Task, 'id' | 'created_at'>[]
 ): Promise<boolean> {
   try {
+    const db = getDbInstance();
     const batch = writeBatch(db);
     const tasksRef = collection(db, COLLECTION_NAME);
 
@@ -117,7 +153,7 @@ export async function updateTask(
   updates: Partial<Omit<Task, 'id' | 'created_at'>>
 ): Promise<boolean> {
   try {
-    const docRef = doc(db, COLLECTION_NAME, id);
+    const docRef = doc(getDbInstance(), COLLECTION_NAME, id);
     await updateDoc(docRef, updates);
     return true;
   } catch (error) {
@@ -137,7 +173,7 @@ export async function updateTaskStatus(
 // Delete a task
 export async function deleteTask(id: string): Promise<boolean> {
   try {
-    const docRef = doc(db, COLLECTION_NAME, id);
+    const docRef = doc(getDbInstance(), COLLECTION_NAME, id);
     await deleteDoc(docRef);
     return true;
   } catch (error) {
@@ -149,6 +185,7 @@ export async function deleteTask(id: string): Promise<boolean> {
 // Delete all tasks for a project
 export async function deleteProjectTasks(projectId: string): Promise<boolean> {
   try {
+    const db = getDbInstance();
     const q = query(
       collection(db, COLLECTION_NAME),
       where('project_id', '==', projectId)
@@ -174,6 +211,7 @@ export async function reorderTasks(
   updates: Array<{ id: string; order: number }>
 ): Promise<boolean> {
   try {
+    const db = getDbInstance();
     const batch = writeBatch(db);
 
     updates.forEach(({ id, order }) => {

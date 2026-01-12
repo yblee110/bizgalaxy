@@ -14,6 +14,7 @@ interface KanbanColumnProps {
   accentColor: string;
   onEditTask?: (task: Task) => void;
   onDeleteTask?: (taskId: string) => void;
+  onTaskClick?: (task: Task) => void;
 }
 
 export default function KanbanColumn({
@@ -23,6 +24,7 @@ export default function KanbanColumn({
   accentColor,
   onEditTask,
   onDeleteTask,
+  onTaskClick,
 }: KanbanColumnProps) {
   const { setNodeRef } = useDroppable({
     id,
@@ -61,6 +63,7 @@ export default function KanbanColumn({
                 task={task}
                 onEdit={onEditTask}
                 onDelete={onDeleteTask}
+                onCardClick={onTaskClick}
               />
             ))
           )}

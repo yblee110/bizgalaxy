@@ -11,6 +11,7 @@ interface TaskCardProps {
   task: Task;
   onEdit?: (task: Task) => void;
   onDelete?: (taskId: string) => void;
+  onCardClick?: (task: Task) => void;
   isDragging?: boolean;
   dragHandleProps?: any;
 }
@@ -18,7 +19,7 @@ interface TaskCardProps {
 export const TaskCard = React.forwardRef<
   HTMLDivElement,
   TaskCardProps & React.HTMLAttributes<HTMLDivElement>
->(({ task, onEdit, onDelete, isDragging, dragHandleProps, style, className, ...props }, ref) => {
+>(({ task, onEdit, onDelete, onCardClick, isDragging, dragHandleProps, style, className, onClick, ...props }, ref) => {
   const statusColors = {
     GOAL: 'border-l-purple-500',
     TODO: 'border-l-red-500',
@@ -26,17 +27,24 @@ export const TaskCard = React.forwardRef<
     DONE: 'border-l-green-500',
   };
 
+  const handleClick = () => {
+    if (!isDragging && onCardClick) {
+      onCardClick(task);
+    }
+  };
+
   return (
     <div
       ref={ref}
       style={style}
       className={cn(
-        'glass rounded-lg w-full p-3 border-l-4 cursor-grab active:cursor-grabbing',
+        'glass rounded-lg w-full p-3 border-l-4 cursor-pointer active:cursor-grabbing',
         'hover:bg-white/10 transition-all group',
         statusColors[task.status],
         isDragging && 'opacity-50 rotate-2 scale-105',
         className
       )}
+      onClick={onClick || handleClick}
       {...props}
     >
       {/* Drag handle */}
@@ -79,7 +87,7 @@ export const TaskCard = React.forwardRef<
 
 TaskCard.displayName = 'TaskCard';
 
-export default function SortableTaskCard({ task, onEdit, onDelete }: TaskCardProps) {
+export default function SortableTaskCard({ task, onEdit, onDelete, onCardClick }: TaskCardProps) {
   const {
     attributes,
     listeners,
@@ -102,6 +110,7 @@ export default function SortableTaskCard({ task, onEdit, onDelete }: TaskCardPro
       task={task}
       onEdit={onEdit}
       onDelete={onDelete}
+      onCardClick={onCardClick}
       style={style}
       isDragging={isDragging}
       dragHandleProps={{ ...attributes, ...listeners }}

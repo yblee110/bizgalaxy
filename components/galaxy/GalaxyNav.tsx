@@ -73,15 +73,16 @@ export default function GalaxyNav({
         </Button>
       </div>
 
-      {/* New Project FAB - Bottom Right */}
-      <div className="fixed bottom-6 right-6 z-40">
+      {/* Action Buttons - Bottom Right */}
+      <div className="fixed bottom-6 right-6 z-40 flex items-end gap-2">
+        {/* New Project Button */}
         <Button
           onClick={openLaunchpad}
           size="lg"
-          className="rounded-full h-14 w-14 glow-primary-lg hover:scale-110 transition-transform"
-          title="새 프로젝트"
+          className="rounded-full h-14 px-5 bg-white hover:bg-white/90 text-black hover:scale-110 transition-transform shadow-[0_0_30px_rgba(255,255,255,0.3)]"
         >
           <Plus className="h-6 w-6" />
+          <span className="ml-2 text-sm font-semibold">새 프로젝트 버튼</span>
         </Button>
       </div>
     </>

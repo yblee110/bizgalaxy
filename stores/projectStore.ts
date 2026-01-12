@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Project } from '@/types';
+import { HOLIDAYS, MEMBER_COLORS } from '@/lib/constants';
 
 interface ProjectStore {
   // State
@@ -144,7 +145,7 @@ export const useProjectStore = create<ProjectStore>()(
             {
               id: Math.random().toString(36).substr(2, 9),
               name,
-              color: `bg-${['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose'][Math.floor(Math.random() * 17)]}-500`
+              color: MEMBER_COLORS[Math.floor(Math.random() * MEMBER_COLORS.length)]
             }
           ],
           lastSaved: new Date()
@@ -187,10 +188,11 @@ export const useProjectStore = create<ProjectStore>()(
 
             if (excludeWeekends && isWeekend) continue;
 
-            // Restriction: Saturday (6) allows only 'WORK' (Normal), not 'FLEX'
-            if (dayOfWeek === 6 && type === 'FLEX') continue;
-
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+            // Skip public holidays
+            if (HOLIDAYS[dateStr]) continue;
+
             const daySchedule = newSchedules[dateStr] || {};
             newSchedules[dateStr] = { ...daySchedule, [memberId]: type };
           }

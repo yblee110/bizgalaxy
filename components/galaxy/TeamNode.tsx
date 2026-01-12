@@ -67,8 +67,8 @@ export default function TeamNode({ selected }: { selected?: boolean }) {
             <div
                 className={cn(
                     'relative w-48 h-48 rounded-full flex items-center justify-center transition-all duration-300',
-                    'glass-strong border-2 border-accent',
-                    selected ? 'shadow-[0_0_50px_rgba(236,72,153,0.5)] scale-105' : 'hover:scale-105 hover:shadow-[0_0_30px_rgba(236,72,153,0.3)]'
+                    'glass-strong border-2',
+                    selected ? 'shadow-[0_0_50px_rgba(247,88,92,0.6)] scale-105 border-[#F7585C]' : 'hover:scale-105 hover:shadow-[0_0_30px_rgba(247,88,92,0.4)] hover:border-[#F7585C]/80 border-[#F7585C]/60'
                 )}
                 onClick={handleClick}
                 onDoubleClick={handleDoubleClick}
@@ -82,12 +82,12 @@ export default function TeamNode({ selected }: { selected?: boolean }) {
                 />
 
                 {/* Decorative pulsed rings */}
-                <div className="absolute inset-0 rounded-full border border-accent/30 animate-pulse" style={{ animationDuration: '3s' }} />
-                <div className="absolute -inset-4 rounded-full border border-accent/10 animate-pulse" style={{ animationDuration: '4s' }} />
+                <div className="absolute inset-0 rounded-full border border-[#F7585C]/30 animate-pulse" style={{ animationDuration: '3s' }} />
+                <div className="absolute -inset-4 rounded-full border border-[#F7585C]/10 animate-pulse" style={{ animationDuration: '4s' }} />
 
                 <div className="text-center z-10 flex flex-col items-center gap-2">
-                    <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center mb-1">
-                        <Users className="w-6 h-6 text-accent" />
+                    <div className="w-12 h-12 rounded-full bg-[#F7585C]/20 flex items-center justify-center mb-1 drop-shadow-[0_0_10px_rgba(247,88,92,0.5)]">
+                        <Users className="w-6 h-6 text-[#F7585C]" />
                     </div>
 
                     {isEditing ? (
@@ -105,7 +105,7 @@ export default function TeamNode({ selected }: { selected?: boolean }) {
                             {teamName}
                         </h2>
                     )}
-                    <p className="text-[10px] text-white/50 select-none">Team Center</p>
+                    <p className="text-[10px] select-none text-[#F7585C] drop-shadow-[0_0_8px_rgba(247,88,92,0.8)]">Team Center</p>
                 </div>
             </div>
 

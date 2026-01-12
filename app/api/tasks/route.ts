@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTasks, createTask, createTasks, updateTaskStatus, deleteTask } from '@/lib/services/taskService';
+import { getTasks, createTask, createTasks, updateTaskStatus, deleteTask, updateTask, reorderTasks } from '@/lib/services/taskService';
 
 export const runtime = 'nodejs';
 
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
 
 /**
  * PATCH /api/tasks
- * Bulk update tasks (for reordering)
+ * Bulk update tasks (for status changes and reordering)
  */
 export async function PATCH(req: NextRequest) {
   try {
@@ -106,14 +106,37 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const success = await Promise.all(
-      updates.map(({ id, status, order }: { id: string; status?: string; order?: number }) =>
-        updateTaskStatus(id, status as any)
-      )
-    );
+    // Separate status updates from order updates for efficient batch operations
+    const statusUpdates: Array<{ id: string; status: string }> = [];
+    const orderUpdates: Array<{ id: string; order: number }> = [];
+
+    for (const update of updates) {
+      const { id, status, order } = update as { id: string; status?: string; order?: number };
+      if (status !== undefined) {
+        statusUpdates.push({ id, status });
+      }
+      if (order !== undefined) {
+        orderUpdates.push({ id, order });
+      }
+    }
+
+    // Handle status updates
+    let statusSuccess = true;
+    if (statusUpdates.length > 0) {
+      const results = await Promise.all(
+        statusUpdates.map(({ id, status }) => updateTaskStatus(id, status as any))
+      );
+      statusSuccess = results.every((r) => r);
+    }
+
+    // Handle order updates using batch write
+    let orderSuccess = true;
+    if (orderUpdates.length > 0) {
+      orderSuccess = await reorderTasks(orderUpdates);
+    }
 
     return NextResponse.json({
-      success: success.every((s) => s),
+      success: statusSuccess && orderSuccess,
     });
   } catch (error) {
     console.error('Error in PATCH /api/tasks:', error);

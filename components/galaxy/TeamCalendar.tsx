@@ -16,27 +16,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const HOLIDAYS: Record<string, string> = {
-    '2026-01-01': '신정',
-    '2026-02-16': '설날 연휴',
-    '2026-02-17': '설날',
-    '2026-02-18': '설날 연휴',
-    '2026-03-01': '삼일절',
-    '2026-03-02': '대체공휴일',
-    '2026-05-01': '근로자의 날',
-    '2026-05-05': '어린이날',
-    '2026-05-06': '대체공휴일',
-    '2026-05-24': '부처님오신날',
-    '2026-05-25': '대체공휴일',
-    '2026-06-06': '현충일',
-    '2026-08-15': '광복절',
-    '2026-09-24': '추석 연휴',
-    '2026-09-25': '추석',
-    '2026-09-26': '추석 연휴',
-    '2026-10-03': '개천절',
-    '2026-10-09': '한글날',
-    '2026-12-25': '성탄절',
-};
+import { HOLIDAYS } from '@/lib/constants';
 
 const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -222,11 +202,11 @@ export default function TeamCalendar({ isOpen, onClose }: TeamCalendarProps) {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end" className="w-48 bg-[#1a1b26] border-white/10 text-white z-[10000]">
                                                 <DropdownMenuLabel>일괄 설정 ({month + 1}월)</DropdownMenuLabel>
-                                                <DropdownMenuItem onClick={() => setMonthSchedule(year, month, member.id, 'WORK')}>
-                                                    <div className="w-2 h-2 rounded-full bg-green-500 mr-2" /> 정상근무 채우기
-                                                </DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => setMonthSchedule(year, month, member.id, 'FLEX')}>
                                                     <div className="w-2 h-2 rounded-full bg-blue-500 mr-2" /> 유연근무 채우기
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => setMonthSchedule(year, month, member.id, 'AFTERNOON')}>
+                                                    <div className="w-2 h-2 rounded-full bg-orange-500 mr-2" /> 오후 근무 채우기
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator className="bg-white/10" />
                                                 <DropdownMenuItem className="text-red-400 focus:text-red-400" onClick={() => removeMember(member.id)}>
