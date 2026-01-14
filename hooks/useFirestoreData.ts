@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useProjectStore } from '@/stores/projectStore';
 import { Project, Task } from '@/types';
 import { getUserId } from '@/lib/auth';
+import debounce from 'lodash.debounce';
 
 interface LoadingState {
   projects: boolean;
@@ -30,7 +31,52 @@ export function useFirestoreData() {
   });
   const initializedRef = useRef(false);
 
-  const { setProjects, projects } = useProjectStore();
+  const { setProjects, projects, setTeamData, teamName, members, teamSchedules } = useProjectStore();
+
+  /**
+   * Save Team Data to Firestore (Debounced)
+   */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedSaveTeamData = useCallback(
+    debounce(async (uid: string, data: any) => {
+      try {
+        await fetch('/api/team', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid, teamData: data }),
+        });
+        // console.log('Team data saved automatically');
+      } catch (err) {
+        console.error('Error auto-saving team data:', err);
+      }
+    }, 2000), // 2 second debounce
+    []
+  );
+
+  /**
+   * Fetch Team Data
+   */
+  const fetchTeamData = useCallback(async () => {
+    const userId = getUserId();
+    if (!userId) return;
+
+    try {
+      const response = await fetch(`/api/team?uid=${encodeURIComponent(userId)}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.teamData) {
+          // Merge with defaults if some fields are missing
+          setTeamData({
+            teamName: data.teamData.teamName || '비즈갤럭시 팀',
+            members: data.teamData.members || [],
+            teamSchedules: data.teamData.teamSchedules || {},
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching team data:', err);
+    }
+  }, [setTeamData]);
 
   /**
    * Fetch projects from Firestore for the current user
@@ -61,6 +107,9 @@ export function useFirestoreData() {
           created_at: p.created_at?.toDate?.() || p.created_at || new Date(),
         }));
         setProjects(projectsWithDates);
+      } else if (data.success && (!data.projects || data.projects.length === 0)) {
+        // If projects is explicitly empty from server, clear local state
+        setProjects([]);
       }
     } catch (err) {
       console.error('Error fetching projects:', err);
@@ -117,7 +166,28 @@ export function useFirestoreData() {
     if (initializedRef.current) return;
     initializedRef.current = true;
     fetchProjects();
-  }, [fetchProjects]);
+    fetchTeamData();
+  }, [fetchProjects, fetchTeamData]);
+
+  /**
+   * Watch for Team Data changes and Auto-Save
+   * Skip the very first render to avoid saving initial state over existing data? 
+   * Actually, if we fetch data, it updates the store. Then this effect runs.
+   * We should ensure we don't save immediately after fetch.
+   * But `teamName`, `members`, etc will change.
+   * 
+   * Solution: The fetch happens once. The user edits later.
+   * Just ensuring the debounce is long enough (2s) usually helps, 
+   * but to be safe, we can use a ref to track if data is loaded?
+   * For now, simplistic approach is fine given the 'merge' strategy in API.
+   */
+  useEffect(() => {
+    if (!initializedRef.current) return; // Don't save before init
+    const userId = getUserId();
+    if (userId) {
+      debouncedSaveTeamData(userId, { teamName, members, teamSchedules });
+    }
+  }, [teamName, members, teamSchedules, debouncedSaveTeamData]);
 
   /**
    * Create a new project via API

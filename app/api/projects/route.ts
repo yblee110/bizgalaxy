@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getProjects, createProject } from '@/lib/services/projectService';
+import { getProjects, createProject } from '@/lib/services/projectService.server';
 import { extractTasksFromDocument } from '@/lib/vertex-ai';
-import { createTasks } from '@/lib/services/taskService';
+import { createTasks } from '@/lib/services/taskService.server';
 
 export const runtime = 'nodejs';
+export const maxDuration = 60; // Increase timeout to 60 seconds
 
 /**
  * GET /api/projects?uid=xxx
@@ -90,7 +91,9 @@ export async function POST(req: NextRequest) {
         project_id: project.id,
       }));
 
-      await createTasks(tasksToCreate);
+      console.log('[DEBUG] Creating tasks:', JSON.stringify(tasksToCreate, null, 2));
+      const createResult = await createTasks(tasksToCreate);
+      console.log('[DEBUG] Tasks created successfully:', createResult);
     }
 
     return NextResponse.json({

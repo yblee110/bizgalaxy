@@ -77,7 +77,7 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
 
 # Google Gemini AI (선택 - AI 기능 사용 시)
-NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
+
 GEMINI_API_KEY=your_gemini_api_key
 ```
 

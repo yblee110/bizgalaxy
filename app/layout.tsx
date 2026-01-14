@@ -19,6 +19,9 @@ const rajdhani = Rajdhani({
 export const metadata: Metadata = {
   title: "비즈갤럭시 - 시각적 생산성 플랫폼",
   description: "복잡한 비즈니스 업무를 인터랙티브한 갤럭시 우주로 변환하세요",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({

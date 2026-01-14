@@ -57,9 +57,25 @@ export default function PlanetNode({ id, data, selected }: PlanetNodeProps) {
     }
   };
 
-  const handleColorChange = (newColor: string, e: React.MouseEvent) => {
+  const handleColorChange = async (newColor: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent opening kanban
+
+    // Update local state immediately for responsiveness
     updateProject(data.id, { color: newColor });
+
+    // Save to server
+    try {
+      const response = await fetch(`/api/projects/${data.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ color: newColor }),
+      });
+      if (!response.ok) {
+        console.error('Failed to save color to server');
+      }
+    } catch (error) {
+      console.error('Error saving color:', error);
+    }
   };
 
   return (

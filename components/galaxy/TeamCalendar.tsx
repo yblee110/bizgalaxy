@@ -262,7 +262,7 @@ export default function TeamCalendar({ isOpen, onClose }: TeamCalendarProps) {
                     <div className="flex-1 overflow-auto p-6">
                         <div className="grid grid-cols-7 mb-2 text-center text-base font-medium text-muted-foreground">
                             {DAYS.map((d, i) => (
-                                <div key={d} className={cn("py-3 border-b border-white/5", i === 0 && "text-red-400", i === 6 && "text-blue-400")}>{d}</div>
+                                <div key={d} className={cn("py-3 border-b border-white/5", i === 0 && "text-red-400")}>{d}</div>
                             ))}
                         </div>
                         <div className="grid grid-cols-7 border-t border-l border-white/5 bg-white/5 rounded-lg overflow-hidden shadow-inner">

@@ -34,11 +34,26 @@ export function resetUserId(): void {
   }
 }
 
+
+/**
+ * Set the user ID (for login)
+ */
+export function setUserId(userId: string): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(USER_ID_KEY, userId);
+  }
+}
+
 /**
  * Get a display name for the user
  */
 export function getUserDisplayName(): string {
   const userId = getUserId();
+
+  if (userId === 'modulabs-community-user') {
+    return 'ModuLabs';
+  }
+
   // Extract a friendly name from the user ID
   const match = userId.match(/user_(\d+)/);
   if (match) {

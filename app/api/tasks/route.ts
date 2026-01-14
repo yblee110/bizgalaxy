@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTasks, createTask, createTasks, updateTaskStatus, deleteTask, updateTask, reorderTasks } from '@/lib/services/taskService';
+import { getTasks, createTask, createTasks, updateTaskStatus, deleteTask, updateTask, reorderTasks } from '@/lib/services/taskService.server';
 
 export const runtime = 'nodejs';
 

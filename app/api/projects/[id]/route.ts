@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getProject, updateProject, deleteProject } from '@/lib/services/projectService';
-import { getTasks, deleteProjectTasks } from '@/lib/services/taskService';
+import { getProject, updateProject, deleteProject } from '@/lib/services/projectService.server';
+import { getTasks, deleteProjectTasks } from '@/lib/services/taskService.server';
 
 export const runtime = 'nodejs';
 

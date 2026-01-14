@@ -38,6 +38,7 @@ interface ProjectStore {
   removeMember: (id: string) => void;
   setMemberSchedule: (date: string, memberId: string, type: 'FLEX' | 'AFTERNOON' | 'VACATION' | 'WORK' | null) => void;
   setMonthSchedule: (year: number, month: number, memberId: string, type: 'FLEX' | 'AFTERNOON' | 'VACATION' | 'WORK', excludeWeekends?: boolean) => void;
+  setTeamData: (data: { teamName: string; members: any[]; teamSchedules: any }) => void;
 
   // Auth State
   isLoggedIn: boolean;
@@ -55,18 +56,7 @@ export const useProjectStore = create<ProjectStore>()(
       // Initial state
       isLoggedIn: false,
       lastSaved: null,
-      projects: [
-        {
-          id: 'demo-project-1',
-          uid: 'user-1',
-          title: 'BizGalaxy Launch',
-          scale: 7,
-          category: 'Software',
-          color: '#7C3AED',
-          summary: 'Initial launch of the platform',
-          created_at: new Date()
-        }
-      ],
+      projects: [],
       selectedProject: null,
       isKanbanOpen: false,
       isLaunchpadOpen: false,
@@ -183,8 +173,8 @@ export const useProjectStore = create<ProjectStore>()(
             const date = new Date(year, month, day);
             const dayOfWeek = date.getDay(); // 0: Sun, 1: Mon, ..., 6: Sat
 
-            // New Logic: Tue-Sat is work week. Sun(0) and Mon(1) are weekends.
-            const isWeekend = dayOfWeek === 0 || dayOfWeek === 1;
+            // New Logic: Tue-Fri is work week. Sun(0), Mon(1), and Sat(6) are weekends.
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 1 || dayOfWeek === 6;
 
             if (excludeWeekends && isWeekend) continue;
 
@@ -197,6 +187,14 @@ export const useProjectStore = create<ProjectStore>()(
             newSchedules[dateStr] = { ...daySchedule, [memberId]: type };
           }
           return { teamSchedules: newSchedules, lastSaved: new Date() };
+        }),
+
+      setTeamData: (data) =>
+        set({
+          teamName: data.teamName,
+          members: data.members,
+          teamSchedules: data.teamSchedules,
+          lastSaved: new Date(),
         }),
     }),
     {

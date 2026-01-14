@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Lock, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { setUserId } from '@/lib/auth';
 
 export default function LoginPage() {
     const { login } = useProjectStore();
@@ -17,6 +18,8 @@ export default function LoginPage() {
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
         if (username === 'modulabs-community' && password === 'modu1234!') {
+            // Set consistent user ID for this account
+            setUserId('modulabs-community-user');
             login();
         } else {
             setError('아이디 또는 비밀번호가 올바르지 않습니다.');

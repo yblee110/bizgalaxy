@@ -1,9 +1,15 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import { ExtractedTasksResult, Task } from '@/types';
 
-// Initialize Google Generative AI (Gemini)
-const genAI = process.env.NEXT_PUBLIC_GEMINI_API_KEY
-  ? new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY)
+// Initialize Google Generative AI (Google Gen AI SDK)
+const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+
+// Use 'unknown' type assertion if the constructor types are strict, 
+// but typically passing apiKey is supported or it reads from env.
+// Based on user snippet: new GoogleGenAI({});
+// We will pass apiKey if it exists, to be safe.
+const genAI = apiKey
+  ? new GoogleGenAI({ apiKey })
   : null;
 
 const EXTRACT_TASKS_PROMPT = `당신은 세계 최고의 프로젝트 매니저(PM)이자 개발 리드입니다.
@@ -59,15 +65,27 @@ export async function extractTasksFromDocument(
   }
 
   try {
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-3-pro-preview', // Use Gemini 3 Pro preview
-    });
-
     const prompt = EXTRACT_TASKS_PROMPT + documentText;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    console.log('[DEBUG] Calling Gemini API for Task Extraction...');
+    console.log('[DEBUG] Has GEMINI_KEY:', !!process.env.GEMINI_API_KEY);
+    console.log('[DEBUG] Has GOOGLE_KEY:', !!process.env.GOOGLE_API_KEY);
+    console.log('[DEBUG] Effective Key Length:', apiKey?.length || 0);
+
+    const result = await genAI.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
+      config: {
+        thinkingConfig: {
+          thinkingLevel: ThinkingLevel.LOW,
+        }
+      },
+    });
+
+    // Use .text (getter)
+    const text = result.text;
+
+    if (!text) throw new Error("No text generated");
 
     // Clean up the response (remove markdown code blocks if present)
     const cleanedText = text
@@ -87,7 +105,7 @@ export async function extractTasksFromDocument(
       tasks: parsed.tasks.map((task: any) => ({
         content: task.content || 'New Task',
         desc: task.desc || '',
-        status: 'TODO' as const,
+        status: task.status || 'TODO',
         is_ai_generated: true,
         order: task.order || 0,
       })),
@@ -110,20 +128,21 @@ export async function generateSummary(
   }
 
   try {
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-3-pro-preview',
-    });
-
     const prompt = `다음 문서를 한 문장(최대 50자)으로 요약해:
 
 ${documentText}
 
 요약:`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
+    const result = await genAI.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
+    });
 
-    return response.text().trim();
+    // Use .text (getter) not function, handle possible undefined
+    const text = result.text;
+    return text?.trim() || '비즈니스 프로젝트 기획서';
+
   } catch (error) {
     console.error('Error generating summary:', error);
     return '비즈니스 프로젝트 기획서';
